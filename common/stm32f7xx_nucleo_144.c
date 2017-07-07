@@ -1,77 +1,5 @@
-/**
-  ******************************************************************************
-  * @file    stm32f7xx_nucleo_144.c
-  * @author  MCD Application Team
-  * @version V1.0.0
-  * @date    18-November-2015
-  * @brief   This file provides set of firmware functions to manage:
-  *          - LEDs and push-button available on STM32F7XX-Nucleo-144 Kit 
-  *            from STMicroelectronics
-  *          - LCD, joystick and microSD available on Adafruit 1.8" TFT LCD 
-  *            shield (reference ID 802)
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT(c) 2015 STMicroelectronics</center></h2>
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
-  */ 
-  
-/* Includes ------------------------------------------------------------------*/
 #include "stm32f7xx_nucleo_144.h"
 
-
-/** @addtogroup BSP
-  * @{
-  */ 
-
-/** @addtogroup STM32F7XX_NUCLEO_144
-  * @{
-  */   
-    
-/** @addtogroup STM32F7XX_NUCLEO_144_LOW_LEVEL 
-  * @brief This file provides set of firmware functions to manage Leds and push-button
-  *        available on STM32F7xx-Nucleo Kit from STMicroelectronics.
-  * @{
-  */ 
-
-/** @defgroup STM32F7XX_NUCLEO_144_LOW_LEVEL_Private_TypesDefinitions
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-
-/** @defgroup STM32F7XX_NUCLEO_144_LOW_LEVEL_Private_Defines
-  * @{
-  */ 
-
-/**
-  * @brief STM32F7xx NUCLEO BSP Driver version number V1.0.0
-  */
 #define __STM32F7xx_NUCLEO_BSP_VERSION_MAIN   (0x01) /*!< [31:24] main version */
 #define __STM32F7xx_NUCLEO_BSP_VERSION_SUB1   (0x00) /*!< [23:16] sub1 version */
 #define __STM32F7xx_NUCLEO_BSP_VERSION_SUB2   (0x00) /*!< [15:8]  sub2 version */
@@ -81,38 +9,17 @@
                                              |(__STM32F7xx_NUCLEO_BSP_VERSION_SUB2 << 8 )\
                                              |(__STM32F7xx_NUCLEO_BSP_VERSION_RC))   
 
-/**
-  * @brief LINK SD Card
-  */
+/* LINK SD Card */
 #define SD_DUMMY_BYTE            0xFF    
 #define SD_NO_RESPONSE_EXPECTED  0x80
 
-/**
-  * @}
-  */ 
+GPIO_TypeDef*	GPIO_PORT[LEDn] = {LED1_GPIO_PORT, LED2_GPIO_PORT, LED3_GPIO_PORT};
+const uint16_t	GPIO_PIN[LEDn] = {LED1_PIN, LED2_PIN, LED3_PIN};
+GPIO_TypeDef*	BUTTON_PORT[BUTTONn] = {USER_BUTTON_GPIO_PORT}; 
+const uint16_t	BUTTON_PIN[BUTTONn] = {USER_BUTTON_PIN}; 
+const uint8_t	BUTTON_IRQn[BUTTONn] = {USER_BUTTON_EXTI_IRQn};
 
-/** @defgroup STM32F7XX_NUCLEO_144_LOW_LEVEL_Private_Macros
-  * @{
-  */ 
-/**
-  * @}
-  */ 
-
-/** @defgroup STM32F7XX_NUCLEO_144_LOW_LEVEL_Private_Variables
-  * @{
-  */ 
-GPIO_TypeDef* GPIO_PORT[LEDn] = {LED1_GPIO_PORT, LED2_GPIO_PORT, LED3_GPIO_PORT};
-
-const uint16_t GPIO_PIN[LEDn] = {LED1_PIN, LED2_PIN, LED3_PIN};
-
-GPIO_TypeDef* BUTTON_PORT[BUTTONn] = {USER_BUTTON_GPIO_PORT}; 
-const uint16_t BUTTON_PIN[BUTTONn] = {USER_BUTTON_PIN}; 
-const uint8_t BUTTON_IRQn[BUTTONn] = {USER_BUTTON_EXTI_IRQn};
-
-/**
- * @brief BUS variables
- */
-
+/* BUS variables */
 #ifdef ADAFRUIT_TFT_JOY_SD_ID802
 #ifdef HAL_SPI_MODULE_ENABLED
 uint32_t SpixTimeout = NUCLEO_SPIx_TIMEOUT_MAX; /*<! Value of Timeout when SPI communication fails */
@@ -126,13 +33,6 @@ static ADC_ChannelConfTypeDef sConfig;
 #endif /* HAL_ADC_MODULE_ENABLED */
 #endif /* ADAFRUIT_TFT_JOY_SD_ID802 */
 
-/**
-  * @}
-  */ 
-
-/** @defgroup STM32F7XX_NUCLEO_144_LOW_LEVEL_Private_FunctionPrototypes
-  * @{
-  */
 #ifdef ADAFRUIT_TFT_JOY_SD_ID802
 
 #ifdef HAL_SPI_MODULE_ENABLED
@@ -164,35 +64,21 @@ static void ADCx_MspDeInit(ADC_HandleTypeDef *hadc);
 
 #endif /* ADAFRUIT_TFT_JOY_SD_ID802 */
 
-/**
-  * @}
-  */ 
+/*
+ * @brief  This method returns the STM32F7xx NUCLEO BSP Driver revision
+ * @retval version: 0xXYZR (8bits for each decimal, R for RC)
+ */
+uint32_t BSP_GetVersion(void) { return __STM32F7xx_NUCLEO_BSP_VERSION; }
 
-/** @defgroup STM32F7XX_NUCLEO_144_LOW_LEVEL_Private_Functions
-  * @{
-  */ 
-
-/**
-  * @brief  This method returns the STM32F7xx NUCLEO BSP Driver revision
-  * @param  None
-  * @retval version: 0xXYZR (8bits for each decimal, R for RC)
-  */
-uint32_t BSP_GetVersion(void)
-{
-  return __STM32F7xx_NUCLEO_BSP_VERSION;
-}
-
-/**
-  * @brief  Configures LED GPIO.
-  * @param  Led: Specifies the Led to be configured. 
-  *   This parameter can be one of following parameters:
-  *     @arg  LED1
-  *     @arg  LED2
-  *     @arg  LED3
-  * @retval None
-  */
-void BSP_LED_Init(Led_TypeDef Led)
-{
+/*
+ * @brief  Configures LED GPIO.
+ * @param  Led: Specifies the Led to be configured. 
+ *   This parameter can be one of following parameters:
+ *     @arg  LED1
+ *     @arg  LED2
+ *     @arg  LED3
+ */
+void BSP_LED_Init(Led_TypeDef Led) {
   GPIO_InitTypeDef  GPIO_InitStruct;
   
   /* Enable the GPIO_LED Clock */
@@ -784,15 +670,9 @@ static void ADCx_Init(void)
   }
 }
 
-/**
-  * @brief  Initializes ADC HAL.
-  * @param  None
-  * @retval None
-  */
-static void ADCx_DeInit(void)
-{
-    hnucleo_Adc.Instance   = NUCLEO_ADCx;
-    
+/* Initializes ADC HAL. */
+static void ADCx_DeInit(void) {
+    hnucleo_Adc.Instance = NUCLEO_ADCx;
     HAL_ADC_DeInit(&hnucleo_Adc);
     ADCx_MspDeInit(&hnucleo_Adc);
 }
@@ -899,21 +779,3 @@ JOYState_TypeDef BSP_JOY_GetState(void)
 
 #endif /* ADAFRUIT_TFT_JOY_SD_ID802 */
 
-
-/**
-  * @}
-  */ 
-
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */    
-
-/**
-  * @}
-  */ 
-    
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

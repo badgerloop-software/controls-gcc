@@ -3,11 +3,12 @@
 PROJECT=badgerloop
 .PHONY: clean
 .DEFAULT_GOAL := $(PROJECT).bin
-PROC_DIR=proc/
-INCLUDES=-I include -I include/cmsis -I include/hal
+PROC_DIR=proc
+INCLUDES=-I include -I include/cmsis -I include/hal -I proc/
 TERMINAL=gnome-terminal
 OBJDUMP_FILE=output.txt
 DEFINES=-D__STARTUP_CLEAR_BSS -D__START=main
+DRIVER_PREFIX=stm32f7xx_hal_
 ###############################################################################
 
 
@@ -26,8 +27,16 @@ LFLAGS=--specs=nosys.specs -Wl,--gc-sections -Wl,-Map=$(PROJECT).map -T$(PROC_DI
 ###############################################################################
 # Global Objects
 OBJECTS += common/main.o 
+OBJECTS += common/stm32f7xx_nucleo_144.o
+
 OBJECTS += $(PROC_DIR)/start.o
 OBJECTS += $(PROC_DIR)/system_stm32f7xx.o
+
+OBJECTS += driver/hal/stm32f7xx_hal.o
+
+OBJECTS += driver/hal/$(DRIVER_PREFIX)gpio.o
+OBJECTS += driver/hal/$(DRIVER_PREFIX)rcc.o
+OBJECTS += driver/hal/$(DRIVER_PREFIX)cortex.o
 ###############################################################################
 
 
