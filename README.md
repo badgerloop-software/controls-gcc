@@ -16,10 +16,8 @@ The ideal use of this project is to be able to edit source files and run `make i
 Without the hand-holding (and bottlenecking!!!) of a licensed IDE or Eclipse port it might be possible that changes to `Makefile` or `makefile.conf` will be necessary as development continues and this project matures. It is highly recommended to study these files to understand how the project is being built in the first place, here are some common cases where `Makefile` changes will be necessary:
 
   * A new source file is added
-  * Support for a new board is being worked on
-  * An additional argument passed to the toolchain is needed
-  * A toolchain argument needs to be omitted
-  * An additional target is being created
+  * A HAL driver was enabled (essentially the same as the above)
+  * A toolchain argument is changed
 
 [Video tutorials](https://www.youtube.com/playlist?list=PLTPrK33wiSskApHw-Tc647bs5f7fbaD24) describing how this project was set up and demonstrating the workflow also exist.
 
@@ -33,11 +31,11 @@ Without the hand-holding (and bottlenecking!!!) of a licensed IDE or Eclipse por
 
 **install**
 
-  * Runs `./$(PROC_DIR)/install.sh` which usually will be a Segger JLink command which connects to a [reflashed onboard JLink](https://www.youtube.com/watch?v=ezPou8W_Ntc) (i.e. STM32 Nucleos) or actual JLink and executes a script that flashes `$(PROJECT).bin` to the necessary physical address and exits.
+  * Runs `./$(PROC_DIR)/install.sh` which usually will be a Segger JLink command which connects to a [reflashed onboard JLink](https://www.youtube.com/watch?v=ezPou8W_Ntc) (i.e. STM32 Nucleos) or actual JLink and executes a script that flashes `$(PROJECT).bin` to the necessary physical address and exits. If the ST-Link v2 is used instead of the J-Link, the executable file will be copied to `/media/$USERNAME/NODE_F767ZI` which accomplishes the same thing.
 
 **debug**
 
-  * Essentially the same as **install** but instead of exiting *JLinkExe* will remain running (executable gets flashed). This works well with **dump** when doing debugging that requires stepping through instructions.
+  * Essentially the same as **install** but instead of exiting *JLinkExe* will remain running (executable gets flashed). This works well with **dump** when doing debugging that requires stepping through instructions. **Not possible without the J-Link**.
 
 **dump**
 
