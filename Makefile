@@ -38,6 +38,11 @@ OBJECTS += driver/hal/stm32f7xx_hal.o
 OBJECTS += driver/hal/$(DRIVER_PREFIX)gpio.o
 OBJECTS += driver/hal/$(DRIVER_PREFIX)rcc.o
 OBJECTS += driver/hal/$(DRIVER_PREFIX)cortex.o
+OBJECTS += driver/hal/$(DRIVER_PREFIX)dma.o
+OBJECTS += driver/hal/$(DRIVER_PREFIX)uart.o
+OBJECTS += driver/hal/$(DRIVER_PREFIX)msp.o
+OBJECTS += driver/hal/$(DRIVER_PREFIX)pwr_ex.o
+OBJECTS += driver/hal/$(DRIVER_PREFIX)rcc_ex.o
 ###############################################################################
 
 
