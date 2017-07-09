@@ -28,7 +28,7 @@ LFLAGS=--specs=nosys.specs -Wl,--gc-sections -Wl,-Map=$(PROJECT).map -T$(PROC_DI
 # Global Objects
 OBJECTS += common/main.o 
 OBJECTS += common/retarget.o
-OBJECTS += common/stm32f7xx_nucleo_144.o
+OBJECTS += common/nuc144.o
 
 OBJECTS += $(PROC_DIR)/start.o
 OBJECTS += $(PROC_DIR)/system_stm32f7xx.o
