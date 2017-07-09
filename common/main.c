@@ -1,20 +1,18 @@
-#include "stm32f7xx_nucleo_144.h"
-
-#define USARTx                           USART3
+#include "main.h"
 
 extern volatile unsigned int ticks;
-UART_HandleTypeDef UartHandle;
 void SystemClock_Config(void);
 static void CPU_CACHE_Enable(void);
 
 static void Error_Handler(void) {
 	/* Turn LED3 on */
-	BSP_LED_On(LED3);
+	BSP_LED_On(LED_RED);
 	while (1) { }
 
 }
 void assert_failed(uint8_t* file, uint32_t line) {
 
+	printf("assert failed\n");
 	while (1) {
 
 	}
@@ -24,9 +22,10 @@ int board_init(void) {
 	CPU_CACHE_Enable();
 	HAL_Init();
 	SystemClock_Config();
+
 	/* TODO: setup oscillator settings using HAL RCC */
-	SystemCoreClockUpdate();
-	SysTick_Config(SystemCoreClock / 1000);
+/*	SystemCoreClockUpdate();*/
+/*	SysTick_Config(SystemCoreClock / 1000);*/
 
 	BSP_LED_Init(LED_GREEN);
 	BSP_LED_Init(LED_BLUE);
@@ -39,7 +38,7 @@ int board_init(void) {
 	UartHandle.Init.BaudRate   = 115200;
 	UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
 	UartHandle.Init.StopBits   = UART_STOPBITS_1;
-	UartHandle.Init.Parity     = UART_PARITY_ODD;
+	UartHandle.Init.Parity     = UART_PARITY_NONE;
 	UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
 	UartHandle.Init.Mode       = UART_MODE_TX_RX;
 	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
@@ -49,7 +48,6 @@ int board_init(void) {
 		Error_Handler();
 	}
 
-	printf("hello\n");
 	return 0;
 }
 
@@ -71,10 +69,8 @@ int main(void) {
 		/* Blink Red LED */
 		curr = ticks / 500;
 		if (curr != prev) {
-			if (curr % 2) {
-				BSP_LED_On(LED_GREEN);
-				printf("green led on\n");
-			}else BSP_LED_Off(LED_GREEN);
+			if (curr % 2) BSP_LED_On(LED_GREEN);
+			else BSP_LED_Off(LED_GREEN);
 		}
 		prev = curr;
 	}
@@ -126,3 +122,4 @@ static void CPU_CACHE_Enable(void){
 	SCB_EnableDCache();
 
 }
+
