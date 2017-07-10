@@ -965,22 +965,5 @@ void HAL_RCC_CSSCallback(void);
                                  ((DRIVE) == RCC_LSEDRIVE_MEDIUMHIGH) || \
                                  ((DRIVE) == RCC_LSEDRIVE_HIGH))
 
-/*****************************************************************************/
-/*                      Added by Vaughn Kottler                              */
-/*****************************************************************************/
-#define NUM_CLK_SRCS 7
-typedef enum clk_src {
-	HSI = 0, HSE = 1, PLL = 2, PLLSAI = 3, PLLI2S = 4, LSI = 5, LSE = 6
-} clk_src_t;
-
-int rcc_getHSEBYP(void);
-int rcc_getLSEBYP(void);
-clk_src_t rcc_get_SysClockSrc(void);
-clk_src_t rcc_get_PLLClockSrc(void);
-int rcc_getClockState(clk_src_t clk);
-extern const char *clk_src_strings[];
-/*****************************************************************************/
-/*****************************************************************************/
-
 #endif /* __STM32F7xx_HAL_RCC_H */
 
