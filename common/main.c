@@ -2,6 +2,8 @@
 
 extern volatile unsigned int ticks;
 
+extern void print_post_info(void);
+
 void assert_failed(uint8_t* file, uint32_t line) {
 
 	printf("assert failed\n");
@@ -14,6 +16,8 @@ int main(void) {
 	unsigned int curr = 0, prev = 0;
 
 	board_init();
+
+	print_post_info();
 
 	while (1) {
 		if (BSP_PB_GetState(BUTTON_USER)) {

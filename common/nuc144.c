@@ -2,39 +2,32 @@
 
 static void CPU_CACHE_Enable();
 static void SystemClock_Config();
-int initUART(void);
+void init_usb_uart(void);
 
 static void Error_Handler(void) {
 
 	/* Turn LED3 on */
 	BSP_LED_On(LED_RED);
-	while (1) {
-	
-	}
+	while (1) {;}
 }
 
 int board_init(void) {
 
+	/* Core Initializations */
 	CPU_CACHE_Enable();
-
-	HAL_Init();
-
 	SystemClock_Config();
+	HAL_Init();
+	init_usb_uart();
 
-	SystemCoreClockUpdate();
-
+	/* Board I/O */
 	BSP_LED_Init(LED_GREEN);
 	BSP_LED_Init(LED_BLUE);
 	BSP_LED_Init(LED_RED);
-
 	BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
-
-	initUART();
-
-	printf("uart init\r\n");
 
 	return 0;
 }
+
 /*****************************************************************************/
 /*                        				LED		                             */
 /*****************************************************************************/
@@ -67,14 +60,8 @@ void BSP_LED_DeInit(Led_TypeDef Led) {
   HAL_GPIO_DeInit(GPIO_PORT[Led], gpio_init_structure.Pin);
 }
 
-
-void BSP_LED_On(Led_TypeDef Led) {
-  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_SET); 
-}
-
-void BSP_LED_Off(Led_TypeDef Led) {
-  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); 
-}
+void BSP_LED_On(Led_TypeDef Led) { HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_SET); }
+void BSP_LED_Off(Led_TypeDef Led) { HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); }
 
 /*****************************************************************************/
 /*                        		PUSH BUTTON			                         */
@@ -129,10 +116,8 @@ uint32_t BSP_PB_GetState(Button_TypeDef Button) {
 /*****************************************************************************/
 /*                   	 	  		  UART		                             */
 /*****************************************************************************/
-int initUART() {
-
-	UartHandle.Instance        = USARTx;
-	
+void init_usb_uart(void) {
+	UartHandle.Instance        = USART3;
 	UartHandle.Init.BaudRate   = 115200;
 	UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
 	UartHandle.Init.StopBits   = UART_STOPBITS_1;
@@ -143,8 +128,6 @@ int initUART() {
 
 	if (HAL_UART_Init(&UartHandle) != HAL_OK)
 		Error_Handler();
-
-	return 0;
 }
 
 /*****************************************************************************/
@@ -166,7 +149,7 @@ void SystemClock_Config(void) {
 	RCC_OscInitStruct.PLL.PLLQ = 10;
 	RCC_OscInitStruct.PLL.PLLR = 5;
 
-	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+	if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
 		Error_Handler();
 
 	/* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 
@@ -179,6 +162,8 @@ void SystemClock_Config(void) {
 
 	if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
 		Error_Handler();
+
+	__HAL_RCC_HSI_DISABLE();
 }
 
 /*****************************************************************************/

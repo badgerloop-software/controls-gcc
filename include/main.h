@@ -4,7 +4,6 @@
 #include "nuc144.h"
 #include "hal_conf.h"
 
-
 UART_HandleTypeDef UartHandle;
 
 #define BOARD "STM32 Nucleo144 F767ZI"

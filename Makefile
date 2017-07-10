@@ -29,6 +29,8 @@ LFLAGS=--specs=nosys.specs -Wl,--gc-sections -Wl,-Map=$(PROJECT).map -T$(PROC_DI
 OBJECTS += common/main.o 
 OBJECTS += common/retarget.o
 OBJECTS += common/nuc144.o
+OBJECTS += common/post.o
+OBJECTS += common/msp_init.o
 
 OBJECTS += $(PROC_DIR)/start.o
 OBJECTS += $(PROC_DIR)/system_stm32f7xx.o
@@ -40,7 +42,6 @@ OBJECTS += driver/hal/$(DRIVER_PREFIX)rcc.o
 OBJECTS += driver/hal/$(DRIVER_PREFIX)cortex.o
 OBJECTS += driver/hal/$(DRIVER_PREFIX)dma.o
 OBJECTS += driver/hal/$(DRIVER_PREFIX)uart.o
-OBJECTS += driver/hal/$(DRIVER_PREFIX)msp.o
 OBJECTS += driver/hal/$(DRIVER_PREFIX)rcc_ex.o
 ###############################################################################
 

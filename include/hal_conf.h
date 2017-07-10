@@ -64,6 +64,8 @@
 #define HSE_VALUE	8000000U	/* Value of the External oscillator in Hz */
 #endif
 
+#define	HSE_BYP	1
+
 #ifndef	HSE_STARTUP_TIMEOUT
 #define HSE_STARTUP_TIMEOUT	100U	/* Time out for HSE start up, in ms */
 #endif
@@ -85,6 +87,8 @@
 #ifndef	LSE_VALUE
 #define	LSE_VALUE	32768U	/* Value of the External Low Speed oscillator in Hz */
 #endif
+
+#define LSE_BYP	0
 
 #ifndef	LSE_STARTUP_TIMEOUT
 #define	LSE_STARTUP_TIMEOUT	5000U	/* Time out for LSE start up, in ms */

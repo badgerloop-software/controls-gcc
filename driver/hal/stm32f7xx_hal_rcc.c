@@ -1,16 +1,4 @@
 /**
-  ******************************************************************************
-  * @file    stm32f7xx_hal_rcc.c
-  * @author  MCD Application Team
-  * @version V1.2.2
-  * @date    14-April-2017
-  * @brief   RCC HAL module driver.
-  *          This file provides firmware functions to manage the following 
-  *          functionalities of the Reset and Clock Control (RCC) peripheral:
-  *           + Initialization and de-initialization functions
-  *           + Peripheral Control functions
-  *       
-  @verbatim                
   ==============================================================================
                       ##### RCC specific features #####
   ==============================================================================
@@ -51,58 +39,11 @@
       Implemented Workaround:
       (+) For AHB & APB peripherals, a dummy read to the peripheral register has been
           inserted in each __HAL_RCC_PPP_CLK_ENABLE() macro.
-
-  @endverbatim
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
-  *
-  * Redistribution and use in source and binary forms, with or without modification,
-  * are permitted provided that the following conditions are met:
-  *   1. Redistributions of source code must retain the above copyright notice,
-  *      this list of conditions and the following disclaimer.
-  *   2. Redistributions in binary form must reproduce the above copyright notice,
-  *      this list of conditions and the following disclaimer in the documentation
-  *      and/or other materials provided with the distribution.
-  *   3. Neither the name of STMicroelectronics nor the names of its contributors
-  *      may be used to endorse or promote products derived from this software
-  *      without specific prior written permission.
-  *
-  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-  * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-  * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-  * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-  *
-  ******************************************************************************
   */ 
 
-/* Includes ------------------------------------------------------------------*/
 #include "stm32f7xx_hal.h"
 
-/** @addtogroup STM32F7xx_HAL_Driver
-  * @{
-  */
-
-/** @defgroup RCC RCC
-  * @brief RCC HAL module driver
-  * @{
-  */
-
 #ifdef HAL_RCC_MODULE_ENABLED
-
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/** @defgroup RCC_Private_Macros RCC Private Macros
-  * @{
-  */
 
 #define MCO1_CLK_ENABLE()   __HAL_RCC_GPIOA_CLK_ENABLE()
 #define MCO1_GPIO_PORT        GPIOA
@@ -111,25 +52,6 @@
 #define MCO2_CLK_ENABLE()   __HAL_RCC_GPIOC_CLK_ENABLE()
 #define MCO2_GPIO_PORT         GPIOC
 #define MCO2_PIN               GPIO_PIN_9
-
-/**
-  * @}
-  */
-/* Private variables ---------------------------------------------------------*/
-/** @defgroup RCC_Private_Variables RCC Private Variables
-  * @{
-  */
-
-/**
-  * @}
-  */
-
-/* Private function prototypes -----------------------------------------------*/
-/* Exported functions ---------------------------------------------------------*/
-
-/** @defgroup RCC_Exported_Functions RCC Exported Functions
-  * @{
-  */
 
 /** @defgroup RCC_Exported_Functions_Group1 Initialization and de-initialization functions 
   *  @brief    Initialization and Configuration functions 
@@ -1110,21 +1032,42 @@ __weak void HAL_RCC_CSSCallback(void)
    */ 
 }
 
-/**
-  * @}
-  */
-
-/**
-  * @}
-  */
-
 #endif /* HAL_RCC_MODULE_ENABLED */
-/**
-  * @}
-  */
 
-/**
-  * @}
-  */
+const char *clk_src_strings[] = {
+	"HSI", "HSE", "PLL", "PLLSAI", "PLLI2S", "LSI", "LSE"
+};
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+int rcc_getClockState(clk_src_t clk) {
+	switch (clk) {
+		case HSI: return RCC->CR & RCC_CR_HSIRDY; break;
+		case HSE: return RCC->CR & RCC_CR_HSERDY; break;
+		case PLL: return RCC->CR & RCC_CR_PLLRDY; break;
+		case PLLSAI: return RCC->CR & RCC_CR_PLLSAIRDY; break;
+		case PLLI2S: return RCC->CR & RCC_CR_PLLI2SRDY; break;
+		case LSI: return RCC->CSR & RCC_CSR_LSIRDY; break;
+		case LSE: return RCC->BDCR & RCC_BDCR_LSERDY; break;
+	}
+	return 0;
+}
+
+clk_src_t rcc_get_PLLClockSrc(void) {
+	switch (RCC->PLLCFGR & RCC_PLLCFGR_PLLSRC) {
+		case RCC_PLLCFGR_PLLSRC_HSE: return HSE;
+		case RCC_PLLCFGR_PLLSRC_HSI: return HSI;
+	}
+	return PLLI2S; /* indicate error */
+}
+
+clk_src_t rcc_get_SysClockSrc(void) {
+	switch (RCC->CFGR & RCC_CFGR_SWS_Msk) {
+		case RCC_CFGR_SWS_HSI: return HSI;
+		case RCC_CFGR_SWS_HSE: return HSE;
+		case RCC_CFGR_SWS_PLL: return PLL;
+	}
+	return PLLI2S; /* indicatg error */
+}
+
+int rcc_getHSEBYP(void) { return RCC->CR & RCC_CR_HSEBYP; }
+int rcc_getLSEBYP(void) { return RCC->BDCR & RCC_BDCR_LSEBYP; }
+
