@@ -6,21 +6,24 @@ int initUART(void);
 int initI2C(void);
 
 static void Error_Handler(void) {
+
 	/* Turn LED3 on */
 	printf("Error: %p\r\n", __builtin_return_address(0));
 	BSP_LED_On(LED_RED);
-	while (1) { }
-
+	while (1) {
+	
+	}
 }
 
 int board_init(void) {
+
 	CPU_CACHE_Enable();
+
 	HAL_Init();
+
 	SystemClock_Config();
 
-	/* TODO: setup oscillator settings using HAL RCC */
-/*	SystemCoreClockUpdate();*/
-/*	SysTick_Config(SystemCoreClock / 1000);*/
+	SystemCoreClockUpdate();
 
 	BSP_LED_Init(LED_GREEN);
 	BSP_LED_Init(LED_BLUE);
@@ -54,8 +57,7 @@ void BSP_LED_Init(Led_TypeDef Led) {
   HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); 
 }
 
-void BSP_LED_DeInit(Led_TypeDef Led)
-{
+void BSP_LED_DeInit(Led_TypeDef Led) {
   GPIO_InitTypeDef  gpio_init_structure;
 
   /* Turn off LED */
@@ -66,13 +68,11 @@ void BSP_LED_DeInit(Led_TypeDef Led)
 }
 
 
-void BSP_LED_On(Led_TypeDef Led)
-{
+void BSP_LED_On(Led_TypeDef Led) {
   HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_SET); 
 }
 
-void BSP_LED_Off(Led_TypeDef Led)
-{
+void BSP_LED_Off(Led_TypeDef Led) {
   HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); 
 }
 
@@ -123,8 +123,7 @@ void BSP_PB_DeInit(Button_TypeDef Button)
     HAL_GPIO_DeInit(BUTTON_PORT[Button], gpio_init_structure.Pin);
 }
 
-uint32_t BSP_PB_GetState(Button_TypeDef Button)
-{
+uint32_t BSP_PB_GetState(Button_TypeDef Button) {
   return HAL_GPIO_ReadPin(BUTTON_PORT[Button], BUTTON_PIN[Button]);
 }
 
@@ -141,20 +140,14 @@ void SystemClock_Config(void) {
 	RCC_OscInitStruct.HSIState = RCC_HSI_OFF;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-	RCC_OscInitStruct.PLL.PLLM = 8;
-	RCC_OscInitStruct.PLL.PLLN = 432;  
+	RCC_OscInitStruct.PLL.PLLM = 4;
+	RCC_OscInitStruct.PLL.PLLN = 160;  
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = 9;
-	RCC_OscInitStruct.PLL.PLLR = 7;
+	RCC_OscInitStruct.PLL.PLLQ = 10;
+	RCC_OscInitStruct.PLL.PLLR = 5;
 
-	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
-		while(1) {};
-	}
-	/* Activate the OverDrive to reach the 216 Mhz Frequency */
-
-	if(HAL_PWREx_EnableOverDrive() != HAL_OK) {
-		while(1) {};
-	}
+	if(HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+		Error_Handler();
 
 	/* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 
 	   clocks dividers */
@@ -163,22 +156,17 @@ void SystemClock_Config(void) {
 	RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
 	RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;  
 	RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;  
-	if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
-	{
-		while(1) {};
-	}
-}
 
+	if(HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
+		Error_Handler();
+}
 
 /*****************************************************************************/
 /*                       			CACHE		                             */
 /*****************************************************************************/
 static void CPU_CACHE_Enable(void){
-	/* Enable I-Cache */
-	SCB_EnableICache();
-	/* Enable D-Cache */
-	SCB_EnableDCache();
-
+	SCB_EnableICache(); /* Enable I-Cache */
+	SCB_EnableDCache(); /* Enable D-Cache */
 }
 
 /*****************************************************************************/
