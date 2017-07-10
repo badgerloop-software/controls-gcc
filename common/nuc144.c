@@ -120,16 +120,17 @@ uint32_t BSP_PB_GetState(Button_TypeDef Button) {
 /*                   	 	  		  UART		                             */
 /*****************************************************************************/
 void init_usb_uart(void) {
-	UartHandle.Instance        = USART3;
-	UartHandle.Init.BaudRate   = 115200;
-	UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-	UartHandle.Init.StopBits   = UART_STOPBITS_1;
-	UartHandle.Init.Parity     = UART_PARITY_NONE;
-	UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
-	UartHandle.Init.Mode       = UART_MODE_TX_RX;
-	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
+	usb_uart.Instance        = USART3;
+	usb_uart.Init.BaudRate   = 115200;
+	usb_uart.Init.WordLength = UART_WORDLENGTH_8B;
+	usb_uart.Init.StopBits   = UART_STOPBITS_1;
+	usb_uart.Init.Parity     = UART_PARITY_NONE;
+	usb_uart.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+	usb_uart.Init.Mode       = UART_MODE_TX_RX;
+	usb_uart.Init.OverSampling = UART_OVERSAMPLING_16;
+	//usb_uart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
 
-	if (HAL_UART_Init(&UartHandle) != HAL_OK)
+	if (HAL_UART_Init(&usb_uart) != HAL_OK)
 		Error_Handler();
 }
 
