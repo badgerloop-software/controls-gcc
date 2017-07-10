@@ -3,9 +3,11 @@
 static void CPU_CACHE_Enable();
 static void SystemClock_Config();
 int initUART(void);
+int initI2C(void);
 
 static void Error_Handler(void) {
 	/* Turn LED3 on */
+	printf("Error: %p\r\n", __builtin_return_address(0));
 	BSP_LED_On(LED_RED);
 	while (1) { }
 
@@ -27,7 +29,6 @@ int board_init(void) {
 	BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
 
 	initUART();
-	printf("uart init\r\n");
 
 	return 0;
 }
@@ -126,27 +127,6 @@ uint32_t BSP_PB_GetState(Button_TypeDef Button)
 {
   return HAL_GPIO_ReadPin(BUTTON_PORT[Button], BUTTON_PIN[Button]);
 }
-/*****************************************************************************/
-/*                   	 	  		  UART		                             */
-/*****************************************************************************/
-int initUART() {
-
-	UartHandle.Instance        = USARTx;
-	
-	UartHandle.Init.BaudRate   = 115200;
-	UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-	UartHandle.Init.StopBits   = UART_STOPBITS_1;
-	UartHandle.Init.Parity     = UART_PARITY_NONE;
-	UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
-	UartHandle.Init.Mode       = UART_MODE_TX_RX;
-	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
-
-	if (HAL_UART_Init(&UartHandle) != HAL_OK) {
-		/* Initialization Error */
-		Error_Handler();
-	}
-	return 0;
-}
 
 /*****************************************************************************/
 /*                        			CLOCK		                             */
@@ -199,5 +179,58 @@ static void CPU_CACHE_Enable(void){
 	/* Enable D-Cache */
 	SCB_EnableDCache();
 
+}
+
+/*****************************************************************************/
+/*                   	 	  		  UART		                             */
+/*****************************************************************************/
+int initUART() {
+
+	UartHandle.Instance        = USARTx;
+	
+	UartHandle.Init.BaudRate   = 115200;
+	UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
+	UartHandle.Init.StopBits   = UART_STOPBITS_1;
+	UartHandle.Init.Parity     = UART_PARITY_NONE;
+	UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+	UartHandle.Init.Mode       = UART_MODE_TX_RX;
+	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
+
+    HAL_UART_MspInit(&UartHandle);
+	if (HAL_UART_Init(&UartHandle) != HAL_OK) {
+		/* Initialization Error */
+		Error_Handler();
+	}
+	return 0;
+}
+
+/*****************************************************************************/
+/*                   	 	  		  I2C		                             */
+/*****************************************************************************/
+
+/* Buffer used for transmission */
+uint8_t aTxBuffer[] = " ****I2C_TwoBoards advanced communication based on IT****  ****I2C_TwoBoards advanced communication based on IT****  ****I2C_TwoBoards advanced communication based on IT**** ";
+
+/* Buffer used for reception */
+uint8_t aRxBuffer[RXBUFFERSIZE];
+
+int initI2C() {
+	/*##-1- Configure the I2C peripheral ######################################*/
+	I2cHandle.Instance             = I2Cx;
+	I2cHandle.Init.Timing          = I2C_TIMING;
+	I2cHandle.Init.OwnAddress1     = I2C_ADDRESS;
+	I2cHandle.Init.AddressingMode  = I2C_ADDRESSINGMODE_10BIT;
+	I2cHandle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+	I2cHandle.Init.OwnAddress2     = 0xFF;
+	I2cHandle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+	I2cHandle.Init.NoStretchMode   = I2C_NOSTRETCH_DISABLE;
+
+    HAL_I2C_MspInit(&I2cHandle);
+	if(HAL_I2C_Init(&I2cHandle) != HAL_OK) {
+		/* Initialization Error */
+		Error_Handler();
+	}
+
+	return 0;
 }
 
