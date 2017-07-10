@@ -2,38 +2,45 @@
 
 void SystemClock_Config();
 void init_usb_uart(void);
-int initI2C(void);
+int init_accel_i2c(void);
 
 static void Error_Handler(void) {
-	/* TODO: get usb_uart state to see if it's even initialized */
-	printf("Error: %p\r\n", __builtin_return_address(0));
+
+	if (usb_uart.gState != HAL_UART_STATE_RESET)
+		printf("Error: %p\r\n", __builtin_return_address(0));
+
 	BSP_LED_On(LED_RED); /* Turn LED3 on */
 	while (1) {;}
+}
+
+inline void nucleo144_gpio_init(void) {
+	BSP_LED_Init(LED_GREEN);
+	BSP_LED_Init(LED_BLUE);
+	BSP_LED_Init(LED_RED);
+	BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
 }
 
 int board_init(void) {
 
 	/* Core Initializations */
-	SCB_EnableICache(); /* Enable I-Cache */
-	SCB_EnableDCache(); /* Enable D-Cache */
+	SCB_EnableICache();
+	SCB_EnableDCache();
 	SystemClock_Config();
 	HAL_Init();
+	nucleo144_gpio_init();
 	init_usb_uart();
 
-	/* Board I/O */
-	BSP_LED_Init(LED_GREEN);
-	BSP_LED_Init(LED_BLUE);
-	BSP_LED_Init(LED_RED);
-	BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
+	/* Drivers Under Construction */
+	init_accel_i2c();
 
 	return 0;
 }
-
 
 /*****************************************************************************/
 /*                   	 	  		  UART		                             */
 /*****************************************************************************/
 inline void init_usb_uart(void) {
+	usb_uart.gState =          HAL_UART_STATE_RESET;
 	usb_uart.Instance        = USART3;
 	usb_uart.Init.BaudRate   = 115200;
 	usb_uart.Init.WordLength = UART_WORDLENGTH_8B;
@@ -84,25 +91,22 @@ inline void SystemClock_Config(void) {
 	__HAL_RCC_HSI_DISABLE();
 }
 
-
 /*****************************************************************************/
 /*                   	 	  		  I2C		                             */
 /*****************************************************************************/
-int initI2C(void) {
+int init_accel_i2c(void) {
 
-	I2cHandle.Instance             = I2Cx;
-	I2cHandle.Init.Timing          = I2C_TIMING;
-	I2cHandle.Init.OwnAddress1     = I2C_ADDRESS;
-	I2cHandle.Init.AddressingMode  = I2C_ADDRESSINGMODE_10BIT;
-	I2cHandle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-	I2cHandle.Init.OwnAddress2     = 0xFF;
-	I2cHandle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-	I2cHandle.Init.NoStretchMode   = I2C_NOSTRETCH_DISABLE;
+	accel_i2c.State =					HAL_I2C_STATE_RESET;
+	accel_i2c.Instance =				I2Cx;
+	accel_i2c.Init.Timing =				I2C_TIMING;
+	accel_i2c.Init.OwnAddress1 =		I2C_ADDRESS;
+	accel_i2c.Init.AddressingMode =		I2C_ADDRESSINGMODE_10BIT;
+	accel_i2c.Init.DualAddressMode =	I2C_DUALADDRESS_DISABLE;
+	accel_i2c.Init.OwnAddress2 =		0xFF;
+	accel_i2c.Init.GeneralCallMode =	I2C_GENERALCALL_DISABLE;
+	accel_i2c.Init.NoStretchMode =		I2C_NOSTRETCH_DISABLE;
 
-	/* pretty sure the HAL init function calls this */
-    //HAL_I2C_MspInit(&I2cHandle);
-
-	if(HAL_I2C_Init(&I2cHandle) != HAL_OK)
+	if(HAL_I2C_Init(&accel_i2c) != HAL_OK)
 		Error_Handler();
 
 	return 0;

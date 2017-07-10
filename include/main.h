@@ -1,14 +1,18 @@
 #ifndef __MAIN_H
 #define __MAIN_H
+
 #include <stdio.h>
 #include "nuc144.h"
 #include "hal_conf.h"
 
 UART_HandleTypeDef usb_uart;
-I2C_HandleTypeDef I2cHandle;
+I2C_HandleTypeDef accel_i2c;
 
-#define BOARD "STM32 Nucleo144 F767ZI"
-#define PROCESSOR "STM32F767ZI"
+#define BOARD		"STM32 Nucleo144 F767ZI"
+#define PROCESSOR	"STM32F767ZI"
+
+void print_post_info(void);
+extern volatile unsigned int ticks;
 
 /*****************************************************************************/
 /*                        		   I2C	   		                             */

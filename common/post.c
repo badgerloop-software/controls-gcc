@@ -43,6 +43,11 @@ void print_post_info(void) {
 	printf("----------------------------------------------------------------------\r\n\r\n");
 }
 
+void assert_failed(uint8_t* file, uint32_t line) {
+	printf("assert failed in file %s on line %lu.\n", file, line);
+	while (1) {;}
+}
+
 int rcc_getClockState(clk_src_t clk) {
 	switch (clk) {
 		case HSI: return RCC->CR & RCC_CR_HSIRDY; break;
