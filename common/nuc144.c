@@ -1,142 +1,64 @@
 #include "main.h"
 
-static void CPU_CACHE_Enable();
-static void SystemClock_Config();
+void SystemClock_Config();
 void init_usb_uart(void);
-int initI2C(void);
+int init_accel_i2c(void);
 
 static void Error_Handler(void) {
 
-	/* Turn LED3 on */
-	printf("Error: %p\r\n", __builtin_return_address(0));
-	BSP_LED_On(LED_RED);
+	if (usb_uart.gState != HAL_UART_STATE_RESET)
+		printf("Error: %p\r\n", __builtin_return_address(0));
+
+	BSP_LED_On(LED_RED); /* Turn LED3 on */
 	while (1) {;}
+}
+
+inline void nucleo144_gpio_init(void) {
+	BSP_LED_Init(LED_GREEN);
+	BSP_LED_Init(LED_BLUE);
+	BSP_LED_Init(LED_RED);
+	BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
 }
 
 int board_init(void) {
 
 	/* Core Initializations */
-	CPU_CACHE_Enable();
+	SCB_EnableICache();
+	SCB_EnableDCache();
 	SystemClock_Config();
 	HAL_Init();
+	nucleo144_gpio_init();
 	init_usb_uart();
 
-	/* Board I/O */
-	BSP_LED_Init(LED_GREEN);
-	BSP_LED_Init(LED_BLUE);
-	BSP_LED_Init(LED_RED);
-	BSP_PB_Init(BUTTON_USER, BUTTON_MODE_GPIO);
+	/* Drivers Under Construction */
+	init_accel_i2c();
 
 	return 0;
 }
 
 /*****************************************************************************/
-/*                        				LED		                             */
-/*****************************************************************************/
-GPIO_TypeDef*	GPIO_PORT[LEDn] = {LED1_GPIO_PORT, LED2_GPIO_PORT, LED3_GPIO_PORT};
-const uint16_t	GPIO_PIN[LEDn] = {LED1_PIN, LED2_PIN, LED3_PIN};
-
-void BSP_LED_Init(Led_TypeDef Led) {
-  GPIO_InitTypeDef  GPIO_InitStruct;
-  
-  /* Enable the GPIO_LED Clock */
-  LEDx_GPIO_CLK_ENABLE(Led);
-  
-  /* Configure the GPIO_LED pin */
-  GPIO_InitStruct.Pin = GPIO_PIN[Led];
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-  
-  HAL_GPIO_Init(GPIO_PORT[Led], &GPIO_InitStruct);
-  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); 
-}
-
-void BSP_LED_DeInit(Led_TypeDef Led) {
-  GPIO_InitTypeDef  gpio_init_structure;
-
-  /* Turn off LED */
-  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET);
-  /* DeInit the GPIO_LED pin */
-  gpio_init_structure.Pin = GPIO_PIN[Led];
-  HAL_GPIO_DeInit(GPIO_PORT[Led], gpio_init_structure.Pin);
-}
-
-void BSP_LED_On(Led_TypeDef Led) { HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_SET); }
-void BSP_LED_Off(Led_TypeDef Led) { HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); }
-
-/*****************************************************************************/
-/*                        		PUSH BUTTON			                         */
-/*****************************************************************************/
-GPIO_TypeDef*	BUTTON_PORT[BUTTONn] = {USER_BUTTON_GPIO_PORT}; 
-const uint16_t	BUTTON_PIN[BUTTONn] = {USER_BUTTON_PIN}; 
-const uint8_t	BUTTON_IRQn[BUTTONn] = {USER_BUTTON_EXTI_IRQn};
-
-void BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef ButtonMode)
-{
-  GPIO_InitTypeDef GPIO_InitStruct;
-  
-  /* Enable the BUTTON Clock */
-  BUTTONx_GPIO_CLK_ENABLE(Button);
-  
-  if(ButtonMode == BUTTON_MODE_GPIO)
-  {
-    /* Configure Button pin as input */
-    GPIO_InitStruct.Pin = BUTTON_PIN[Button];
-    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
-    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-    HAL_GPIO_Init(BUTTON_PORT[Button], &GPIO_InitStruct);
-  }
-  
-  if(ButtonMode == BUTTON_MODE_EXTI)
-  {
-    /* Configure Button pin as input with External interrupt */
-    GPIO_InitStruct.Pin = BUTTON_PIN[Button];
-    GPIO_InitStruct.Pull = GPIO_NOPULL;
-    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING; 
-    HAL_GPIO_Init(BUTTON_PORT[Button], &GPIO_InitStruct);
-    
-    /* Enable and set Button EXTI Interrupt to the lowest priority */
-    HAL_NVIC_SetPriority((IRQn_Type)(BUTTON_IRQn[Button]), 0x0F, 0x00);
-    HAL_NVIC_EnableIRQ((IRQn_Type)(BUTTON_IRQn[Button]));
-  }
-}
-
-void BSP_PB_DeInit(Button_TypeDef Button)
-{
-    GPIO_InitTypeDef gpio_init_structure;
-
-    gpio_init_structure.Pin = BUTTON_PIN[Button];
-    HAL_NVIC_DisableIRQ((IRQn_Type)(BUTTON_IRQn[Button]));
-    HAL_GPIO_DeInit(BUTTON_PORT[Button], gpio_init_structure.Pin);
-}
-
-uint32_t BSP_PB_GetState(Button_TypeDef Button) {
-  return HAL_GPIO_ReadPin(BUTTON_PORT[Button], BUTTON_PIN[Button]);
-}
-
-/*****************************************************************************/
 /*                   	 	  		  UART		                             */
 /*****************************************************************************/
-void init_usb_uart(void) {
-	UartHandle.Instance        = USART3;
-	UartHandle.Init.BaudRate   = 115200;
-	UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-	UartHandle.Init.StopBits   = UART_STOPBITS_1;
-	UartHandle.Init.Parity     = UART_PARITY_NONE;
-	UartHandle.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
-	UartHandle.Init.Mode       = UART_MODE_TX_RX;
-	UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
+inline void init_usb_uart(void) {
+	usb_uart.gState =          HAL_UART_STATE_RESET;
+	usb_uart.Instance        = USART3;
+	usb_uart.Init.BaudRate   = 115200;
+	usb_uart.Init.WordLength = UART_WORDLENGTH_8B;
+	usb_uart.Init.StopBits   = UART_STOPBITS_1;
+	usb_uart.Init.Parity     = UART_PARITY_NONE;
+	usb_uart.Init.HwFlowCtl  = UART_HWCONTROL_NONE;
+	usb_uart.Init.Mode       = UART_MODE_TX_RX;
+	usb_uart.Init.OverSampling = UART_OVERSAMPLING_16;
+	usb_uart.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
 
-	if (HAL_UART_Init(&UartHandle) != HAL_OK)
+	if (HAL_UART_Init(&usb_uart) != HAL_OK)
 		Error_Handler();
 }
 
 /*****************************************************************************/
 /*                        			CLOCK		                             */
 /*****************************************************************************/
-void SystemClock_Config(void) {
+inline void SystemClock_Config(void) {
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 	RCC_OscInitTypeDef RCC_OscInitStruct;
 
@@ -170,33 +92,97 @@ void SystemClock_Config(void) {
 }
 
 /*****************************************************************************/
-/*                       			CACHE		                             */
+/*                   	 	  		  I2C		                             */
 /*****************************************************************************/
-static void CPU_CACHE_Enable(void){
-	SCB_EnableICache(); /* Enable I-Cache */
-	SCB_EnableDCache(); /* Enable D-Cache */
+int init_accel_i2c(void) {
+
+	accel_i2c.State =					HAL_I2C_STATE_RESET;
+	accel_i2c.Instance =				I2Cx;
+	accel_i2c.Init.Timing =				I2C_TIMING;
+	accel_i2c.Init.OwnAddress1 =		I2C_ADDRESS;
+	accel_i2c.Init.AddressingMode =		I2C_ADDRESSINGMODE_10BIT;
+	accel_i2c.Init.DualAddressMode =	I2C_DUALADDRESS_DISABLE;
+	accel_i2c.Init.OwnAddress2 =		0xFF;
+	accel_i2c.Init.GeneralCallMode =	I2C_GENERALCALL_DISABLE;
+	accel_i2c.Init.NoStretchMode =		I2C_NOSTRETCH_DISABLE;
+
+	if(HAL_I2C_Init(&accel_i2c) != HAL_OK)
+		Error_Handler();
+
+	return 0;
 }
 
 /*****************************************************************************/
-/*                   	 	  		  I2C		                             */
+/*                        		Nucleo I/O			                         */
 /*****************************************************************************/
-int initI2C(void) {
+GPIO_TypeDef*	GPIO_PORT[LEDn] = {LED1_GPIO_PORT, LED2_GPIO_PORT, LED3_GPIO_PORT};
+const uint16_t	GPIO_PIN[LEDn] = {LED1_PIN, LED2_PIN, LED3_PIN};
+GPIO_TypeDef*	BUTTON_PORT[BUTTONn] = {USER_BUTTON_GPIO_PORT}; 
+const uint16_t	BUTTON_PIN[BUTTONn] = {USER_BUTTON_PIN}; 
+const uint8_t	BUTTON_IRQn[BUTTONn] = {USER_BUTTON_EXTI_IRQn};
 
-	I2cHandle.Instance             = I2Cx;
-	I2cHandle.Init.Timing          = I2C_TIMING;
-	I2cHandle.Init.OwnAddress1     = I2C_ADDRESS;
-	I2cHandle.Init.AddressingMode  = I2C_ADDRESSINGMODE_10BIT;
-	I2cHandle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-	I2cHandle.Init.OwnAddress2     = 0xFF;
-	I2cHandle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-	I2cHandle.Init.NoStretchMode   = I2C_NOSTRETCH_DISABLE;
+void BSP_LED_On(Led_TypeDef Led) { HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_SET); }
+void BSP_LED_Off(Led_TypeDef Led) { HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); }
+uint32_t BSP_PB_GetState(Button_TypeDef Button) { return HAL_GPIO_ReadPin(BUTTON_PORT[Button], BUTTON_PIN[Button]); }
 
-    HAL_I2C_MspInit(&I2cHandle);
-	if(HAL_I2C_Init(&I2cHandle) != HAL_OK) {
-		/* Initialization Error */
-		Error_Handler();
-	}
+void BSP_LED_Init(Led_TypeDef Led) {
+  GPIO_InitTypeDef  GPIO_InitStruct;
+  
+  /* Enable the GPIO_LED Clock */
+  LEDx_GPIO_CLK_ENABLE(Led);
+  
+  /* Configure the GPIO_LED pin */
+  GPIO_InitStruct.Pin = GPIO_PIN[Led];
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  
+  HAL_GPIO_Init(GPIO_PORT[Led], &GPIO_InitStruct);
+  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET); 
+}
 
-	return 0;
+void BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef ButtonMode) {
+  GPIO_InitTypeDef GPIO_InitStruct;
+  
+  /* Enable the BUTTON Clock */
+  BUTTONx_GPIO_CLK_ENABLE(Button);
+  
+  /* Configure Button pin as input */
+  if(ButtonMode == BUTTON_MODE_GPIO) {
+    GPIO_InitStruct.Pin = BUTTON_PIN[Button];
+    GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+    GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+    HAL_GPIO_Init(BUTTON_PORT[Button], &GPIO_InitStruct);
+  }
+  
+  /* Configure Button pin as input with External interrupt */
+  if(ButtonMode == BUTTON_MODE_EXTI) {
+    GPIO_InitStruct.Pin = BUTTON_PIN[Button];
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING; 
+    HAL_GPIO_Init(BUTTON_PORT[Button], &GPIO_InitStruct);
+    
+    /* Enable and set Button EXTI Interrupt to the lowest priority */
+    HAL_NVIC_SetPriority((IRQn_Type)(BUTTON_IRQn[Button]), 0x0F, 0x00);
+    HAL_NVIC_EnableIRQ((IRQn_Type)(BUTTON_IRQn[Button]));
+  }
+}
+
+void BSP_LED_DeInit(Led_TypeDef Led) {
+  GPIO_InitTypeDef  gpio_init_structure;
+
+  /* Turn off LED */
+  HAL_GPIO_WritePin(GPIO_PORT[Led], GPIO_PIN[Led], GPIO_PIN_RESET);
+  /* DeInit the GPIO_LED pin */
+  gpio_init_structure.Pin = GPIO_PIN[Led];
+  HAL_GPIO_DeInit(GPIO_PORT[Led], gpio_init_structure.Pin);
+}
+
+void BSP_PB_DeInit(Button_TypeDef Button) {
+    GPIO_InitTypeDef gpio_init_structure;
+    gpio_init_structure.Pin = BUTTON_PIN[Button];
+    HAL_NVIC_DisableIRQ((IRQn_Type)(BUTTON_IRQn[Button]));
+    HAL_GPIO_DeInit(BUTTON_PORT[Button], gpio_init_structure.Pin);
 }
 
