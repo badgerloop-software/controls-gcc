@@ -7,4 +7,5 @@
 *.axf
 *.swp
 output.txt
+*.mxproject
 
