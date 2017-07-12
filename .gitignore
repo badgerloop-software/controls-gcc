@@ -8,4 +8,5 @@
 *.swp
 output.txt
 *.mxproject
+generated/nuc144_f767zi/build
 
